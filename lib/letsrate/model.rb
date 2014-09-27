@@ -5,6 +5,10 @@ module Letsrate
   def rate(stars, user, dimension=nil, dirichlet_method=false)
     dimension = nil if dimension.blank?
 
+    unless can_rate? user, dimension
+      reset_vote user, dimension
+    end
+
     if can_rate? user, dimension
       rates(dimension).create! do |r|
         r.stars = stars
@@ -67,6 +71,10 @@ module Letsrate
 
   def can_rate?(user, dimension=nil)
     user.ratings_given.where(dimension: dimension, rateable_id: id, rateable_type: self.class.name).size.zero?
+  end
+
+  def reset_vote(user, dimension=nil)
+    user.ratings_given.where(dimension: dimension, rateable_id: id, rateable_type: self.class.name).delete_all
   end
 
   def rates(dimension=nil)
